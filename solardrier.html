@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UCU Biogas Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body { background: #f4f6f9; color: #333; }
+    header {
+      background: #2a3f54;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 15px 10px;
+      border-radius: 0 0 12px 12px;
+    }
+    header img.logo {
+      height: 50px;
+      margin-right: 15px;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      flex-grow: 1;
+    }
+    #dashboard {
+      max-width: 1000px;
+      margin: 15px auto;
+      padding: 15px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .controls {
+      margin-bottom: 15px;
+    }
+
+    #motorControls {
+      margin-top: 20px;
+    }
+    #motorControls h3 {
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+    .motor-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: space-between;
+    }
+    .motor {
+      background: #f0f2f5;
+      padding: 12px 18px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 100px;
+    }
+    .motor span {
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .motor button {
+      padding: 6px 20px;
+      border: none;
+      border-radius: 20px;
+      background: #d9534f;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .motor button.active {
+      background: #28a745;
+    }
+
+    #chart {
+      background: #f7f9fc;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      min-height: 250px;
+      box-shadow: inset 0 0 10px #e3e8ef;
+    }
+
+    .battery-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .battery-bar {
+      width: 180px;
+      height: 20px;
+      background: #ccc;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .battery-fill {
+      height: 100%;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      background: #4caf50;
+      transition: width 0.3s;
+    }
+
+    .button-group {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .button-group button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      background: #0078d7;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .button-group button.logout {
+      background: #d9534f;
+    }
+
+    #lastUpdateInfo {
+      text-align: right;
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      max-height: 280px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: #f1f3f5;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+    tr:hover {
+      background: #eef6ff;
+    }
+
+    @media(max-width:600px){
+      .motor-group { flex-direction: column; align-items: stretch; }
+      .motor { flex-direction: row; justify-content: space-between; padding: 10px; }
+      .battery-container { flex-direction: column; align-items: flex-start; }
+      .button-group { flex-direction: column; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img class="logo" src="your-logo-url.png" alt="Logo">
+    <h1>UCU Biogas Dashboard</h1>
+  </header>
+
+  <div id="dashboard">
+    <div id="motorControls">
+      <h3>Relay Controls</h3>
+      <div class="motor-group">
+        <div class="motor"><span>Relay 1</span><button data-motor="1">OFF</button></div>
+        <div class="motor"><span>Relay 2</span><button data-motor="2">OFF</button></div>
+      </div>
+    </div>
+
+    <div id="chart">📈 Loading chart...</div>
+
+    <div class="battery-container">
+      <span>Battery:</span>
+      <div class="battery-bar"><div class="battery-fill" id="battery-fill">--%</div></div>
+    </div>
+
+    <div class="button-group">
+      <button onclick="refreshData()">Refresh</button>
+      <button onclick="exportCSV()">Export</button>
+      <button class="logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div id="lastUpdateInfo">Last updated: --</div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Avg Temperature (°C)</th>
+            <th>Avg Humidity (%)</th>
+          </tr>
+        </thead>
+        <tbody id="dataBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const channelId = "3033421"; // Replace with your ThingSpeak Channel ID
+    const apiKey = "2TV4GZY5ESANU5SS"; // Your ThingSpeak Read API Key
+    const writeKey = "CBZLR0Q1V6JUA2HS"; // Your Write API Key
+    let feedCount = 25;
+
+    async function fetchData() {
+      const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=${feedCount}`;
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('Network error');
+        const data = await resp.json();
+        const feeds = data.feeds;
+        const times = [], avgTemps = [], avgHums = [];
+        const tbody = document.getElementById('dataBody');
+        tbody.innerHTML = '';
+
+        feeds.forEach(e => {
+          const dt = new Date(e.created_at);
+          const timeLabel = dt.toISOString().split('T')[0] + ' ' + dt.toTimeString().split(' ')[0];
+          const temp = parseFloat(e.field1) || 0;
+          const hum = parseFloat(e.field2) || 0;
+
+          times.push(timeLabel);
+          avgTemps.push(temp);
+          avgHums.push(hum);
+
+          const row = `<tr>
+            <td>${timeLabel}</td>
+            <td>${temp.toFixed(1)}</td>
+            <td>${hum.toFixed(1)}</td>
+          </tr>`;
+          tbody.insertAdjacentHTML('beforeend', row);
+        });
+
+        Plotly.newPlot('chart', [
+          { x: times, y: avgTemps, type: 'scatter', mode: 'lines+markers', name: 'Avg Temp (°C)' },
+          { x: times, y: avgHums, type: 'scatter', mode: 'lines+markers', name: 'Avg Humidity (%)' }
+        ], {
+          margin: { t: 30, b: 80 },
+          xaxis: { tickangle: -45, title: 'Time' },
+          yaxis: { title: 'Value' }
+        });
+
+        const last = feeds[feeds.length - 1];
+        if (last && last.created_at) {
+          const now = new Date();
+          const lt = new Date(last.created_at);
+          const minutesAgo = Math.round((now - lt)/60000);
+          document.getElementById('lastUpdateInfo').innerText = `Last updated: ${minutesAgo} min(s) ago`;
+        }
+
+      } catch (err) {
+        console.error('Fetch error', err);
+      }
+    }
+
+    function toggleMotor(btn, id) {
+      const on = btn.classList.toggle("active");
+      btn.textContent = on ? "ON" : "OFF";
+      const fieldNum = id === "1" ? 3 : id === "2" ? 4 : null;
+      if (!fieldNum) return;
+
+      const value = on ? 1 : 0;
+      const url = `https://api.thingspeak.com/update?api_key=${writeKey}&field${fieldNum}=${value}`;
+
+      fetch(url)
+        .then(res => {
+          if (res.ok) {
+            console.log(`Relay ${id} set to ${value}`);
+          } else {
+            console.error(`Failed to update Relay ${id}`);
+          }
+        })
+        .catch(err => {
+          console.error("Relay control error:", err);
+        });
+    }
+
+    document.querySelectorAll('.motor button').forEach(btn => {
+      btn.addEventListener('click', () => toggleMotor(btn, btn.dataset.motor));
+    });
+
+    function refreshData() {
+      fetchData();
+    }
+
+    function exportCSV() {
+      const rows = document.querySelectorAll('#dataBody tr');
+      let csv = 'Time,Avg Temperature,Avg Humidity\n';
+      rows.forEach(r => {
+        const cells = r.querySelectorAll('td');
+        const row = Array.from(cells).map(c => c.innerText).join(',');
+        csv += row + '\n';
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.csv';
+      a.click();
+    }
+
+    function logout() {
+      alert('Logged out');
+    }
+
+    fetchData();
+    setInterval(fetchData, 60000);
+  </script>
+</body>
+</html>
