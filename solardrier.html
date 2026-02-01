@@ -1,331 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UCU Biogas Dashboard</title>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background: #f4f6f9; color: #333; }
-    header {
-      background: #2a3f54;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      padding: 15px 10px;
-      border-radius: 0 0 12px 12px;
-    }
-    header img.logo {
-      height: 50px;
-      margin-right: 15px;
-    }
-    header h1 {
-      font-size: 1.6rem;
-      flex-grow: 1;
-    }
-    #dashboard {
-      max-width: 1000px;
-      margin: 15px auto;
-      padding: 15px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    }
+<meta charset="UTF-8">
 
-    .controls {
-      margin-bottom: 15px;
-    }
+<!-- SEO META TAGS -->
+<title>TechCare IT Solutions | IT Maintenance & Embedded Systems</title>
+<meta name="description" content="Professional IT maintenance, GPS vehicle tracking, surveillance camera systems, and embedded solutions for organizations.">
+<meta name="keywords" content="IT maintenance, GPS tracking, surveillance cameras, embedded systems, PC repair, IoT">
+<meta name="author" content="TechCare IT Solutions">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    #motorControls {
-      margin-top: 20px;
-    }
-    #motorControls h3 {
-      margin-bottom: 12px;
-      font-size: 1.2rem;
-    }
-    .motor-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      justify-content: space-between;
-    }
-    .motor {
-      background: #f0f2f5;
-      padding: 12px 18px;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 100px;
-    }
-    .motor span {
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-    .motor button {
-      padding: 6px 20px;
-      border: none;
-      border-radius: 20px;
-      background: #d9534f;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .motor button.active {
-      background: #28a745;
-    }
+<style>
+:root{
+  --bg:#f4f6f8;
+  --text:#111;
+  --card:#ffffff;
+  --primary:#0a2540;
+  --accent:#00d4ff;
+}
+body.dark{
+  --bg:#020617;
+  --text:#e5e7eb;
+  --card:#0f172a;
+  --primary:#020617;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
+body{background:var(--bg);color:var(--text);transition:.3s}
+section{padding:70px 20px;max-width:1200px;margin:auto}
+h2{text-align:center;margin-bottom:40px;font-size:32px}
 
-    #chart {
-      background: #f7f9fc;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-      min-height: 250px;
-      box-shadow: inset 0 0 10px #e3e8ef;
-    }
+/* NAVBAR */
+header{background:var(--primary);position:sticky;top:0;z-index:1000}
+nav{display:flex;justify-content:space-between;align-items:center;padding:15px 20px}
+.logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:bold;font-size:20px}
+.logo img{height:40px;width:40px;border-radius:6px;object-fit:cover}
+.menu{display:none;flex-direction:column;background:var(--primary)}
+.menu a{color:#fff;padding:15px;text-decoration:none;border-top:1px solid rgba(255,255,255,.1)}
+.menu a:hover{background:rgba(255,255,255,.1)}
+.hamburger{color:#fff;font-size:26px;cursor:pointer}
+@media(min-width:768px){
+  .hamburger{display:none}
+  .menu{display:flex!important;flex-direction:row;background:none}
+  .menu a{border:none}
+}
 
-    .battery-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .battery-bar {
-      width: 180px;
-      height: 20px;
-      background: #ccc;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .battery-fill {
-      height: 100%;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-      color: #fff;
-      background: #4caf50;
-      transition: width 0.3s;
-    }
+/* HERO */
+.hero{
+  background:linear-gradient(to right,#020617,#0a2540);
+  color:#fff;text-align:center;padding:120px 20px
+}
+.hero img{height:80px;margin-bottom:20px;border-radius:10px}
+.hero h2{font-size:40px}
+.hero p{max-width:700px;margin:20px auto}
+.btn{
+  background:var(--accent);color:#000;padding:12px 25px;
+  border-radius:5px;text-decoration:none;font-weight:bold
+}
 
-    .button-group {
-      margin: 20px 0;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .button-group button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      background: #0078d7;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .button-group button.logout {
-      background: #d9534f;
-    }
+/* GRID / CARDS */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:25px}
+.card{
+  background:var(--card);padding:25px;border-radius:10px;
+  box-shadow:0 10px 20px rgba(0,0,0,.1);
+  opacity:0;transform:translateY(40px);transition:.6s
+}
+.card.show{opacity:1;transform:none}
+.card img{
+  width:100%;height:180px;object-fit:cover;
+  border-radius:8px;margin-bottom:15px
+}
 
-    #lastUpdateInfo {
-      text-align: right;
-      font-size: 0.9rem;
-      color: #555;
-      margin-bottom: 10px;
-    }
+/* PRICING */
+.price{font-size:32px;color:var(--accent);margin:15px 0}
 
-    .table-wrapper {
-      overflow-x: auto;
-      max-height: 280px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 700px;
-    }
-    th, td {
-      padding: 10px;
-      text-align: center;
-      border-bottom: 1px solid #eee;
-    }
-    th {
-      position: sticky;
-      top: 0;
-      background: #f1f3f5;
-      font-weight: bold;
-    }
-    tr:nth-child(even) {
-      background: #fafafa;
-    }
-    tr:hover {
-      background: #eef6ff;
-    }
+/* FLOAT BUTTONS */
+.float{
+  position:fixed;right:20px;padding:12px 16px;border-radius:50px;
+  color:#fff;font-weight:bold;text-decoration:none;z-index:999
+}
+.whatsapp{bottom:80px;background:#25d366}
+.email{bottom:20px;background:#2563eb}
 
-    @media(max-width:600px){
-      .motor-group { flex-direction: column; align-items: stretch; }
-      .motor { flex-direction: row; justify-content: space-between; padding: 10px; }
-      .battery-container { flex-direction: column; align-items: flex-start; }
-      .button-group { flex-direction: column; }
-      table { font-size: 13px; }
-    }
-  </style>
+/* FOOTER */
+footer{background:var(--primary);color:#fff;text-align:center;padding:20px}
+</style>
 </head>
+
 <body>
-  <header>
-    <img class="logo" src="your-logo-url.png" alt="Logo">
-    <h1>UCU Biogas Dashboard</h1>
-  </header>
 
-  <div id="dashboard">
-    <div id="motorControls">
-      <h3>Relay Controls</h3>
-      <div class="motor-group">
-        <div class="motor"><span>Relay 1</span><button data-motor="1">OFF</button></div>
-        <div class="motor"><span>Relay 2</span><button data-motor="2">OFF</button></div>
-      </div>
-    </div>
-
-    <div id="chart">📈 Loading chart...</div>
-
-    <div class="battery-container">
-      <span>Battery:</span>
-      <div class="battery-bar"><div class="battery-fill" id="battery-fill">--%</div></div>
-    </div>
-
-    <div class="button-group">
-      <button onclick="refreshData()">Refresh</button>
-      <button onclick="exportCSV()">Export</button>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-
-    <div id="lastUpdateInfo">Last updated: --</div>
-
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Avg Temperature (°C)</th>
-            <th>Avg Humidity (%)</th>
-          </tr>
-        </thead>
-        <tbody id="dataBody"></tbody>
-      </table>
-    </div>
+<header>
+<nav>
+  <div class="logo">
+    <img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7" alt="TechCare IT Logo">
+    <span>TechCare IT</span>
   </div>
 
-  <script>
-    const channelId = "3033421"; // Replace with your ThingSpeak Channel ID
-    const apiKey = "2TV4GZY5ESANU5SS"; // Your ThingSpeak Read API Key
-    const writeKey = "CBZLR0Q1V6JUA2HS"; // Your Write API Key
-    let feedCount = 25;
+  <div class="hamburger" onclick="toggleMenu()">☰</div>
 
-    async function fetchData() {
-      const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=${feedCount}`;
-      try {
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error('Network error');
-        const data = await resp.json();
-        const feeds = data.feeds;
-        const times = [], avgTemps = [], avgHums = [];
-        const tbody = document.getElementById('dataBody');
-        tbody.innerHTML = '';
+  <div class="menu" id="menu">
+    <a href="#home">Home</a>
+    <a href="#services">Services</a>
+    <a href="#embedded">Embedded</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#contact">Contact</a>
+    <a href="#" onclick="toggleDark()">🌙</a>
+  </div>
+</nav>
+</header>
 
-        feeds.forEach(e => {
-          const dt = new Date(e.created_at);
-          const timeLabel = dt.toISOString().split('T')[0] + ' ' + dt.toTimeString().split(' ')[0];
-          const temp = parseFloat(e.field1) || 0;
-          const hum = parseFloat(e.field2) || 0;
+<section class="hero" id="home">
+<img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7" alt="Logo">
+<h2>IT Maintenance & Embedded Systems Experts</h2>
+<p>Professional IT support, GPS vehicle tracking, and surveillance camera solutions.</p>
+<a href="#contact" class="btn">Request a Quote</a>
+</section>
 
-          times.push(timeLabel);
-          avgTemps.push(temp);
-          avgHums.push(hum);
 
-          const row = `<tr>
-            <td>${timeLabel}</td>
-            <td>${temp.toFixed(1)}</td>
-            <td>${hum.toFixed(1)}</td>
-          </tr>`;
-          tbody.insertAdjacentHTML('beforeend', row);
-        });
+<section id="about">
+  <h2>About TechCare IT</h2>
 
-        Plotly.newPlot('chart', [
-          { x: times, y: avgTemps, type: 'scatter', mode: 'lines+markers', name: 'Avg Temp (°C)' },
-          { x: times, y: avgHums, type: 'scatter', mode: 'lines+markers', name: 'Avg Humidity (%)' }
-        ], {
-          margin: { t: 30, b: 80 },
-          xaxis: { tickangle: -45, title: 'Time' },
-          yaxis: { title: 'Value' }
-        });
+  <div class="grid">
+    <div class="card">
+      <h3>Who We Are</h3>
+      <p>
+        TechCare IT Solutions is a technology services company providing
+        professional IT maintenance, embedded systems, and smart security
+        solutions for businesses and individuals.
+      </p>
+    </div>
 
-        const last = feeds[feeds.length - 1];
-        if (last && last.created_at) {
-          const now = new Date();
-          const lt = new Date(last.created_at);
-          const minutesAgo = Math.round((now - lt)/60000);
-          document.getElementById('lastUpdateInfo').innerText = `Last updated: ${minutesAgo} min(s) ago`;
-        }
+    <div class="card">
+      <h3>What We Do</h3>
+      <p>
+        We deliver reliable PC and network support, organizational IT services,
+        GPS vehicle tracking, surveillance camera systems, and custom embedded
+        and IoT solutions.
+      </p>
+    </div>
 
-      } catch (err) {
-        console.error('Fetch error', err);
-      }
-    }
+    <div class="card">
+      <h3>Why Choose Us</h3>
+      <p>
+        Our clients trust us for fast response, technical expertise, secure
+        systems, and practical solutions tailored to real operational needs.
+      </p>
+    </div>
+  </div>
+</section>
 
-    function toggleMotor(btn, id) {
-      const on = btn.classList.toggle("active");
-      btn.textContent = on ? "ON" : "OFF";
-      const fieldNum = id === "1" ? 3 : id === "2" ? 4 : null;
-      if (!fieldNum) return;
+<section id="services">
+<h2>Our Services</h2>
+<div class="grid">
+  <div class="card">
+    <h3>PC & Network Maintenance</h3>
+    <p>Preventive maintenance, troubleshooting, OS installation, upgrades, and secure networking.</p>
+  </div>
+  <div class="card">
+    <h3>Organizational IT Support</h3>
+    <p>Reliable on-site and remote IT services for offices and institutions.</p>
+  </div>
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04">
+    <h3>Embedded Systems Support</h3>
+    <p>
+      Design, installation, and maintenance of embedded systems including
+      GPS tracking units, surveillance cameras, IoT devices, and custom controllers.
+    </p>
+  </div>
+</div>
+</section>
 
-      const value = on ? 1 : 0;
-      const url = `https://api.thingspeak.com/update?api_key=${writeKey}&field${fieldNum}=${value}`;
 
-      fetch(url)
-        .then(res => {
-          if (res.ok) {
-            console.log(`Relay ${id} set to ${value}`);
-          } else {
-            console.error(`Failed to update Relay ${id}`);
-          }
-        })
-        .catch(err => {
-          console.error("Relay control error:", err);
-        });
-    }
+<section id="team">
+  <h2>Meet Our Team</h2>
 
-    document.querySelectorAll('.motor button').forEach(btn => {
-      btn.addEventListener('click', () => toggleMotor(btn, btn.dataset.motor));
-    });
+  <div class="grid">
+    <div class="card">
+      <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Team Member">
+      <h3>Daniel Okoro</h3>
+      <p><strong>Lead IT Engineer</strong></p>
+      <p>
+        Oversees IT infrastructure, system maintenance, and enterprise
+        technical support for clients.
+      </p>
+    </div>
 
-    function refreshData() {
-      fetchData();
-    }
+    <div class="card">
+      <img src="https://randomuser.me/api/portraits/women/45.jpg" alt="Team Member">
+      <h3>Aisha Bello</h3>
+      <p><strong>Network & Security Specialist</strong></p>
+      <p>
+        Responsible for network design, security implementation,
+        surveillance systems, and access control solutions.
+      </p>
+    </div>
 
-    function exportCSV() {
-      const rows = document.querySelectorAll('#dataBody tr');
-      let csv = 'Time,Avg Temperature,Avg Humidity\n';
-      rows.forEach(r => {
-        const cells = r.querySelectorAll('td');
-        const row = Array.from(cells).map(c => c.innerText).join(',');
-        csv += row + '\n';
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'data.csv';
-      a.click();
-    }
+    <div class="card">
+      <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="Team Member">
+      <h3>Michael Chen</h3>
+      <p><strong>Embedded Systems Engineer</strong></p>
+      <p>
+        Designs and maintains embedded systems including GPS tracking,
+        IoT devices, and custom hardware controllers.
+      </p>
+    </div>
 
-    function logout() {
-      alert('Logged out');
-    }
+    <div class="card">
+      <img src="https://randomuser.me/api/portraits/women/29.jpg" alt="Team Member">
+      <h3>Sophia Martinez</h3>
+      <p><strong>Technical Support Coordinator</strong></p>
+      <p>
+        Manages client support requests, service scheduling, and ensures
+        fast response and customer satisfaction.
+      </p>
+    </div>
+  </div>
+</section>
 
-    fetchData();
-    setInterval(fetchData, 60000);
-  </script>
+<section id="certifications">
+  <h2>Certifications & Technology Partners</h2>
+
+  <div class="grid">
+    <div class="card" style="text-align:center">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" style="height:60px;object-fit:contain">
+      <p>Microsoft Technology Partner</p>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Cisco_logo_blue_2016.svg" alt="Cisco" style="height:60px;object-fit:contain">
+      <p>Cisco Networking Solutions</p>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" style="height:60px;object-fit:contain">
+      <p>Google Cloud & IoT Ecosystem</p>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Hikvision_logo.svg" alt="Hikvision" style="height:60px;object-fit:contain">
+      <p>Surveillance & Security Systems</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="embedded">
+<h2>Embedded System Solutions</h2>
+<div class="grid">
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1603791440384-56cd371ee9a7">
+    <h3>GPS Vehicle Tracking</h3>
+    <p>
+      Real-time vehicle location, route history, speed monitoring, and theft prevention
+      for fleets and private vehicles.
+    </p>
+  </div>
+
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1581092919531-7c9c1a1a1b8a">
+    <h3>Surveillance Camera Systems</h3>
+    <p>
+      High-definition CCTV and IP camera systems with remote access, recording,
+      and professional installation for businesses and homes.
+    </p>
+  </div>
+</div>
+</section>
+
+<section id="pricing">
+<h2>Service Plans</h2>
+<div class="grid">
+  <div class="card">
+    <h3>Basic</h3>
+    <p class="price">$99 / month</p>
+    <p>PC maintenance<br>Software updates<br>Email support</p>
+  </div>
+  <div class="card">
+    <h3>Business</h3>
+    <p class="price">$249 / month</p>
+    <p>Full IT support<br>Network management<br>Priority response</p>
+  </div>
+  <div class="card">
+    <h3>Enterprise</h3>
+    <p class="price">Custom</p>
+    <p>Embedded systems<br>Dedicated engineer<br>24/7 monitoring</p>
+  </div>
+</div>
+</section>
+
+<section id="contact">
+<h2>Contact Us</h2>
+<p style="text-align:center">Contact us via WhatsApp or Email for fast response.</p>
+</section>
+
+<footer>
+<p>© 2026 TechCare IT Solutions | GitHub Pages Ready</p>
+</footer>
+
+<a class="float whatsapp" href="https://wa.me/1234567890" target="_blank">WhatsApp</a>
+<a class="float email" href="mailto:info@techcareit.com">Email</a>
+
+<script>
+function toggleMenu(){
+  const m=document.getElementById("menu");
+  m.style.display=m.style.display==="flex"?"none":"flex";
+}
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
+const cards=document.querySelectorAll(".card");
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>e.isIntersecting&&e.target.classList.add("show"));
+},{threshold:0.2});
+cards.forEach(c=>observer.observe(c));
+</script>
+
 </body>
 </html>
